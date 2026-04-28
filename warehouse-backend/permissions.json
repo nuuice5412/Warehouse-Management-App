@@ -1,0 +1,42 @@
+{
+  "Warehouse Manager": [
+    "dashboard",
+    "users",
+    "inventory",
+    "vendors",
+    "purchases",
+    "receiving",
+    "search",
+    "issue",
+    "delivery",
+    "reports"
+  ],
+  "Warehouse Staff": [
+    "dashboard",
+    "users",
+    "inventory",
+    "vendors",
+    "search",
+    "issue",
+    "delivery"
+  ],
+  "Purchasing Officer": [
+    "dashboard",
+    "vendors",
+    "purchases",
+    "receiving",
+    "search",
+    "reports"
+  ],
+  "Employee": [
+    "dashboard",
+    "search",
+    "issue",
+    "delivery"
+  ],
+  "Accountant": [
+    "dashboard",
+    "search",
+    "reports"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "warehouse-app",
+  "version": "1.0.0",
+  "description": "RNP Warehouse Management",
+  "main": "main.js",
+  "author": "RNP",
+  "license": "ISC",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win nsis --config.win.signAndEditExecutable=false",
+    "dist": "electron-builder --win nsis --config.win.signAndEditExecutable=false",
+    "dist-portable": "electron-builder --win portable --config.win.signAndEditExecutable=false"
+  },
+  "build": {
+    "appId": "com.rnp.warehouse",
+    "productName": "RNP Warehouse",
+    "files": [
+      "main.js",
+      "index.html",
+      "css/**",
+      "js/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1"
+  }
+}

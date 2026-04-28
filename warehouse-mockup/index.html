@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RNP Warehouse</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <div id="login-splash"
+    style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; background: var(--bg); position: fixed; top: 0; left: 0; z-index: 9999;">
+    <div
+      style="width: 100%; max-width: 400px; padding: 40px 30px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+      <h1 style="text-align: center; font-size: 32px; margin: 0 0 10px 0; color: var(--text);">เข้าสู่ระบบ</h1>
+      <p style="text-align: center; color: var(--muted); margin-bottom: 30px; font-size: 14px;">
+        กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</p>
+
+      <form onsubmit="splashLogin(event)">
+        <div style="margin-bottom: 20px;">
+          <label
+            style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; color: var(--text);">ชื่อผู้ใช้</label>
+          <div style="position: relative;">
+            <svg style="position: absolute; left: 12px; top: 12px; width: 18px; height: 18px; color: var(--muted);"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+              </path>
+            </svg>
+            <input type="text" id="splashEmail" placeholder="admin" required
+              style="width: 100%; padding: 12px 12px 12px 40px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel-2); color: var(--text); font-size: 14px;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label
+            style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; color: var(--text);">รหัสผ่าน</label>
+          <div style="position: relative;">
+            <svg style="position: absolute; left: 12px; top: 12px; width: 18px; height: 18px; color: var(--muted);"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+              </path>
+            </svg>
+            <input type="password" id="splashPass" placeholder="••••••••" required
+              style="width: 100%; padding: 12px 40px 12px 40px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel-2); color: var(--text); font-size: 14px;">
+            <svg onclick="toggleSplashPassword()"
+              style="position: absolute; right: 12px; top: 12px; width: 18px; height: 18px; color: var(--muted); cursor: pointer;"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+              </path>
+            </svg>
+          </div>
+        </div>
+
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; font-size: 13px;">
+          <label style="display: flex; align-items: center; cursor: pointer; color: var(--text);">
+            <input type="checkbox" style="margin-right: 6px; width:16px; height:16px; accent-color: var(--accent);">
+            จดจำฉันไว้
+          </label>
+        </div>
+
+        <button type="submit"
+          style="width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: background 0.2s;">
+          เข้าสู่ระบบ &nbsp;&nbsp;&rarr;
+        </button>
+        <div id="splashError"
+          style="color:var(--danger); text-align:center; margin-top:15px; font-size:13px; min-height:18px;"></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="app" id="app-wrapper" style="display: none;">
+    <aside class="sidebar">
+      <div class="brand">RNP จัดการคลังสินค้า</div>
+      <div class="menu" id="menu"></div>
+    </aside>
+    <main class="main">
+      <div class="topbar">
+        <h2 id="screenTitle">แดชบอร์ด</h2>
+        <div id="topbarActions">
+          <span class="badge">ข้อมูลจำลองภายในเครื่อง</span>
+        </div>
+      </div>
+      <section id="screen"></section>
+    </main>
+  </div>
+
+  <script src="js/data.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+
+</html>

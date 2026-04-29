@@ -818,7 +818,7 @@
       const selected = item || {};
       editingInventoryCode = selected.code || null;
       const totalValue = Number(selected.stock || 0) * Number(selected.price || 0);
-      const vendorOptions = db.vendors.map(v => `<option value="${v.name}" ${v.name === selected.supplierItem ? "selected" : ""}>${v.name}</option>`).join("");
+      const vendorOptions = db.vendors.filter(v => v.status === "Active").map(v => `<option value="${v.name}" ${v.name === selected.supplierItem ? "selected" : ""}>${v.name}</option>`).join("");
       screen.innerHTML = `
         <div class="card" style="padding: 20px;">
           <h3>${editingInventoryCode ? "แก้ไขข้อมูลสินค้า" : "เพิ่มสินค้าใหม่"}</h3>
@@ -1103,7 +1103,7 @@
       const totalPrice = totalAmount.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
       const currentVendor = selected.vendor || (selected.item ? selected.item + " (บริษัทผู้ผลิต)" : "");
-      const vendorOptions = db.vendors.map(v => `<option value="${v.name}" ${v.name === currentVendor ? "selected" : ""}>${v.name}</option>`).join("");
+      const vendorOptions = db.vendors.filter(v => v.status === "Active").map(v => `<option value="${v.name}" ${v.name === currentVendor ? "selected" : ""}>${v.name}</option>`).join("");
 
       const poRefValue = selected.ref || "";
 
@@ -1113,13 +1113,13 @@
           <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
             <div>
               <label>ตัวแทนจำหน่าย</label>
-              <select id="epVendor" style="width:100%; background:var(--panel-2); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:5px; margin-top:5px;">
+              <select id="epVendor" onchange="updateVendorPhone(this.value)" style="width:100%; background:var(--panel-2); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:5px; margin-top:5px;">
                 <option value="">-- เลือกตัวแทนจำหน่าย --</option>
                 ${vendorOptions}
               </select>
             </div>
             <div><label>เลขที่เอกสาร PO</label><input id="epRef" value="${poRefValue}" ${editingPurchaseRef ? "readonly" : ""} style="margin-top:5px;"></div>
-            <div><label>วันที่สั่งซื้อ</label><input type="date" id="epDate" value="${selected.date || new Date().toISOString().slice(0, 10)}"></div>
+            <div><label>วันที่สั่งซื้อ</label><input type="date" id="epDate" onclick="this.showPicker()" value="${selected.date || new Date().toISOString().slice(0, 10)}"></div>
             <div><label>เบอร์ติดต่อ</label><input id="epPhone" value="${selected.phone || ""}" placeholder="ระบุเบอร์ติดต่อ"></div>
           </div>
           
@@ -1194,6 +1194,14 @@
         </div>
       `;
     }
+
+    window.updateVendorPhone = function (vendorName) {
+      const vendor = db.vendors.find(v => v.name === vendorName);
+      if (vendor) {
+        const phoneInput = document.getElementById("epPhone");
+        if (phoneInput) phoneInput.value = vendor.phone || "";
+      }
+    };
 
     window.poItemChanged = function (selectEl) {
       const row = selectEl.closest("tr");
@@ -1380,15 +1388,14 @@
         return `
           <tr data-status="${mappedStatus}">
             <td>${p.date || ""}</td>
-            <td>${p.ref || ""}</td>
-            <td>${p.vendor || "-"}</td>
-            <td>${deliveryDate}</td>
+            <td><a href="#" onclick="viewReceivingDetails(${idx}); return false;" style="color:var(--accent); font-weight:bold; text-decoration:none;">${p.ref || ""}</a></td>
+            <td><a href="#" onclick="viewReceivingDetails(${idx}); return false;" style="color:inherit; text-decoration:none; border-bottom:1px dashed var(--muted);">${p.vendor || "-"}</a></td>
+            <td>${p.receiveDate || "-"}</td>
             <td>${statusHtml}</td>
             <td>${totalPrice}</td>
             <td>
-              <span style="cursor:pointer; color:var(--danger); font-size:18px; margin-right:8px;" onclick="delRowReceiving(${idx})" title="ลบ">🗑️</span>
-              <span style="cursor:pointer; margin-right:8px; font-size:18px;" onclick="viewReceivingDetails(${idx})" title="ดูรายละเอียด">🔎</span>
-              <span style="cursor:pointer; font-size:18px;" onclick="receiveGoods(${idx})" title="รับสินค้า">📥</span>
+              <span style="cursor:pointer; color:var(--danger); font-size:18px; margin-right:15px;" onclick="delRowReceiving(${idx})" title="ลบ">🗑️</span>
+              <span style="cursor:pointer; color:var(--accent); font-size:18px;" onclick="receiveGoods(${idx})" title="รับสินค้า">📥</span>
             </td>
           </tr>
         `;
@@ -1419,10 +1426,10 @@
           <table style="width: 100%;">
             <thead>
               <tr>
-                <th style="text-align:left;">วัน</th>
+                <th style="text-align:left;">วันที่สั่ง</th>
                 <th style="text-align:left;">รหัส PO</th>
                 <th style="text-align:left;">ตัวแทนจำหน่าย</th>
-                <th style="text-align:left;">วันจัดส่ง</th>
+                <th style="text-align:left;">วันที่รับสินค้า</th>
                 <th style="text-align:left;">สถานะ</th>
                 <th style="text-align:left;">ราคารวม</th>
                 <th style="text-align:left;">จัดการ</th>
@@ -1486,7 +1493,8 @@
             <div><label>ชื่อผู้จำหน่าย / ผู้ผลิต</label><input value="${mockVendorName}" readonly></div>
             <div><label>รหัส PO</label><input id="rPO" value="${po.ref}" readonly></div>
             <div><label>รหัส GR</label><input id="rGR" value="${grNo}" readonly></div>
-            <div><label>เบอร์ติดต่อ</label><input value="${mockPhone}" readonly></div>
+            <div><label>วันที่รับสินค้า</label><input type="date" id="rDate" value="${po.receiveDate || new Date().toISOString().slice(0, 10)}" ${isReadOnly ? 'disabled' : ''} onclick="this.showPicker()"></div>
+            <div style="grid-column: span 2;"><label>เบอร์ติดต่อ</label><input value="${mockPhone}" readonly></div>
           </div>
           
           <div style="margin-top:20px;">
@@ -1541,8 +1549,11 @@
     };
 
     function saveReceivingEdit() {
+      const receiveDate = document.getElementById("rDate").value;
       const remarks = document.getElementById("rRemarks").value.trim();
       const po = db.purchases[editingReceivingIdx];
+
+      po.receiveDate = receiveDate;
 
       const inputs = document.querySelectorAll(".r-recv-qty");
       let allMatch = true;
@@ -1774,7 +1785,8 @@
       const trs = db.issues.map((iss, idx) => {
         let statusHtml = "";
         if (iss.status === "จัดส่งแล้ว") statusHtml = `<span style="color:var(--ok); font-weight:bold;">✅ จัดส่งแล้ว</span>`;
-        else if (iss.status === "อนุมัติแล้ว") statusHtml = `<span style="color:#6c757d; font-weight:bold;">✔️ อนุมัติแล้ว</span>`;
+        else if (iss.status === "อนุมัติแล้ว") statusHtml = `<span style="color:var(--accent); font-weight:bold;">✔️ อนุมัติแล้ว</span>`;
+        else if (iss.status === "รออนุมัติ" || !iss.status) statusHtml = `<span style="color:var(--warn); font-weight:bold;">⏳ รออนุมัติ</span>`;
         else if (iss.status === "คืนสินค้า") statusHtml = `<span style="color:#ef9d2e; font-weight:bold;">↩️ คืนสินค้า</span>`;
         else if (iss.status === "ยกเลิก") statusHtml = `<span style="color:var(--danger); font-weight:bold;">❌ ยกเลิก</span>`;
         else statusHtml = iss.status || "";
@@ -1807,6 +1819,7 @@
                 <option value="">สถานะทั้งหมด</option>
                 <option value="จัดส่งแล้ว">✅ จัดส่งแล้ว</option>
                 <option value="อนุมัติแล้ว">✔️ อนุมัติแล้ว</option>
+                <option value="รออนุมัติ">⏳ รออนุมัติ</option>
                 <option value="คืนสินค้า">↩️ คืนสินค้า</option>
                 <option value="ยกเลิก">❌ ยกเลิก</option>
               </select>
@@ -1834,27 +1847,41 @@
     function renderIssueEditForm(issue) {
       const selected = issue || {};
       if (!issue) editingIssueNo = null;
+      
+      const isManager = currentUser?.role === "Warehouse Manager";
+      const currentStatus = selected.status || "รออนุมัติ";
+      const isNew = !editingIssueNo;
+      
+      // If not manager and not new, certain fields might be locked
+      const canEditStatus = isManager;
+      const canEditContent = isManager || (isNew || currentStatus === "รออนุมัติ");
+
       const options = db.inventory.map(i => `<option>${i.name}</option>`).join("");
+      
       screen.innerHTML = `
         <div class="card" style="padding: 20px;">
           <h3>${editingIssueNo ? "แก้ไขรายการเบิกสินค้า" : "บันทึกการเบิกสินค้า"}</h3>
+          ${!isManager && !isNew && currentStatus !== "รออนุมัติ" ? `<div class="auth-message error" style="margin-bottom:15px;">⚠️ รายการนี้ได้รับการอนุมัติหรือดำเนินการแล้ว คุณไม่สามารถแก้ไขข้อมูลได้ (สิทธิ์เฉพาะ Manager)</div>` : ""}
           <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div><label>เลขที่เอกสารเบิก (เว้นว่างเพื่อสร้างอัตโนมัติ)</label><input id="eiNo" value="${selected.issueNo || ""}" ${editingIssueNo ? "readonly" : ""}></div>
-            <div><label>สินค้า</label><select id="eiItem">${options}</select></div>
-            <div><label>จำนวน</label><input type="number" id="eiQty" min="0" value="${selected.qty ?? 0}"></div>
-            <div><label>เหตุผลการเบิก</label><input id="eiReason" value="${selected.reason || ""}"></div>
-            <div><label>วันที่</label><input type="date" id="eiDate" value="${selected.date || ""}"></div>
-            <div><label>สถานะ</label>
-              <select id="eiStatus" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--panel-2); color:var(--text);">
-                <option value="จัดส่งแล้ว" ${selected.status === "จัดส่งแล้ว" ? "selected" : ""}>จัดส่งแล้ว</option>
-                <option value="อนุมัติแล้ว" ${selected.status === "อนุมัติแล้ว" || !selected.status ? "selected" : ""}>อนุมัติแล้ว</option>
-                <option value="คืนสินค้า" ${selected.status === "คืนสินค้า" ? "selected" : ""}>คืนสินค้า</option>
-                <option value="ยกเลิก" ${selected.status === "ยกเลิก" ? "selected" : ""}>ยกเลิก</option>
+            <div><label>เลขที่เอกสารเบิก</label><input id="eiNo" value="${selected.issueNo || ""}" ${editingIssueNo || !canEditContent ? "readonly" : ""}></div>
+            <div><label>สินค้า</label>
+              <select id="eiItem" ${!canEditContent ? "disabled" : ""}>${options}</select>
+            </div>
+            <div><label>จำนวน</label><input type="number" id="eiQty" min="0" value="${selected.qty ?? 0}" ${!canEditContent ? "readonly" : ""}></div>
+            <div><label>เหตุผลการเบิก</label><input id="eiReason" value="${selected.reason || ""}" ${!canEditContent ? "readonly" : ""}></div>
+            <div><label>วันที่</label><input type="date" id="eiDate" onclick="this.showPicker()" value="${selected.date || ""}" ${!canEditContent ? "readonly" : ""}></div>
+            <div><label>สถานะ ${!canEditStatus ? "(เฉพาะ Manager ที่แก้ไขได้)" : ""}</label>
+              <select id="eiStatus" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--panel-2); color:var(--text);" ${!canEditStatus ? "disabled" : ""}>
+                <option value="รออนุมัติ" ${currentStatus === "รออนุมัติ" ? "selected" : ""}>⏳ รออนุมัติ</option>
+                <option value="อนุมัติแล้ว" ${currentStatus === "อนุมัติแล้ว" ? "selected" : ""}>✔️ อนุมัติแล้ว</option>
+                <option value="จัดส่งแล้ว" ${currentStatus === "จัดส่งแล้ว" ? "selected" : ""}>✅ จัดส่งแล้ว</option>
+                <option value="คืนสินค้า" ${currentStatus === "คืนสินค้า" ? "selected" : ""}>↩️ คืนสินค้า</option>
+                <option value="ยกเลิก" ${currentStatus === "ยกเลิก" ? "selected" : ""}>❌ ยกเลิก</option>
               </select>
             </div>
           </div>
           <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-            <button class="btn primary" onclick="saveIssueEdit()">${editingIssueNo ? "อัปเดตข้อมูล" : "ยืนยันการเบิก"}</button>
+            ${canEditContent || canEditStatus ? `<button class="btn primary" onclick="saveIssueEdit()">${editingIssueNo ? "อัปเดตข้อมูล" : "ยืนยันการเบิก"}</button>` : ""}
             <button class="btn danger" onclick="cancelIssueEdit()">ยกเลิก</button>
           </div>
         </div>
@@ -1868,7 +1895,8 @@
       const qty = Math.max(0, Number(document.getElementById("eiQty").value || 0));
       const reason = document.getElementById("eiReason").value.trim();
       const date = document.getElementById("eiDate").value || new Date().toISOString().slice(0, 10);
-      const status = document.getElementById("eiStatus").value;
+      const statusSelect = document.getElementById("eiStatus");
+      const status = statusSelect ? statusSelect.value : "รออนุมัติ";
       const inv = db.inventory.find(x => x.name === item);
 
       if (!editingIssueNo) {
@@ -1895,43 +1923,109 @@
     }
 
     function renderReports() {
-      const invRows = db.inventory.map(i => `<tr><td>${i.code}</td><td>${i.name}</td><td>${i.category}</td><td>${i.stock}</td><td>${i.reorder}</td><td>${i.stock <= i.reorder ? "ควรสั่งซื้อ" : "ปกติ"}</td></tr>`).join("");
-      const issueRows = db.issues.map(i => `<tr><td>${i.date}</td><td>${i.issueNo || i.orderNo}</td><td>${i.item}</td><td>${i.qty}</td><td>${i.reason}</td></tr>`).join("");
-      const purchaseRows = db.purchases.flatMap(p =>
-        (p.items && p.items.length > 0)
-          ? p.items.map(itm => `<tr><td>${p.ref}</td><td>${p.date}</td><td>${p.vendor || "-"}</td><td>${itm.code || "-"}</td><td>${itm.name || "-"}</td><td>${itm.qty}</td><td>${Number(itm.cost || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td><td>${p.status || ""}</td></tr>`)
-          : [`<tr><td>${p.ref}</td><td>${p.date}</td><td>${p.vendor || "-"}</td><td>-</td><td>-</td><td>-</td><td>-</td><td>${p.status || ""}</td></tr>`]
-      ).join("");
       screen.innerHTML = `
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h3 style="margin: 0;">ส่งออกข้อมูลรายงาน</h3>
-            <div class="muted" style="margin-top: 4px;">ดาวน์โหลดข้อมูลทั้งหมดเป็นไฟล์ Excel (CSV) เพื่อนำไปใช้งานต่อ</div>
+        <div class="card">
+          <div style="display:flex; gap:15px; align-items:flex-end; flex-wrap:wrap;">
+            <div style="flex:1; min-width:250px;">
+              <label>ประเภทรายงาน</label>
+              <select id="reportType" onchange="updateReportView()" style="background:var(--panel-2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px; width:100%; height:40px;">
+                <option value="">-- กรุณาเลือกรายงานที่ต้องการดู --</option>
+                <option value="inventory">📦 รายงานสรุปสินค้าคงคลัง</option>
+                <option value="issues">📝 รายงานประวัติเบิกสินค้า</option>
+                <option value="purchases">💰 รายงานสรุปการสั่งซื้อ (ระบุช่วงวันที่)</option>
+              </select>
+            </div>
+            <div id="dateRangeContainer" style="display:none; gap:10px; align-items:flex-end;">
+              <div style="width:160px;">
+                <label>จากวันที่</label>
+                <input type="date" id="reportStartDate" onclick="this.showPicker()" style="height:40px;">
+              </div>
+              <div style="width:160px;">
+                <label>ถึงวันที่</label>
+                <input type="date" id="reportEndDate" onclick="this.showPicker()" style="height:40px;">
+              </div>
+              <button class="btn primary" onclick="updateReportView()" style="height:40px;">กรองข้อมูล</button>
+            </div>
+            <div style="margin-left:auto;">
+              <button class="btn success" onclick="exportReportsToExcel()" style="height:40px; padding: 0 20px;">📥 ดาวน์โหลด Excel (CSV)</button>
+            </div>
           </div>
-          <button class="btn success" onclick="exportReportsToExcel()">ดาวน์โหลด Excel</button>
         </div>
-        <div class="card">
-          <h3>รายงานสรุปสินค้าคงคลัง</h3>
-          <table>
-            <tr><th>รหัส</th><th>ชื่อสินค้า</th><th>หมวดหมู่</th><th>คงคลัง</th><th>จุดสั่งซื้อขั้นต่ำ</th><th>สถานะ</th></tr>
-            ${invRows}
-          </table>
-        </div>
-        <div class="card">
-          <h3>รายงานประวัติเบิกสินค้า</h3>
-          <table>
-            <tr><th>วันที่</th><th>เลขที่เอกสาร</th><th>สินค้า</th><th>จำนวน</th><th>เหตุผล</th></tr>
-            ${issueRows}
-          </table>
-        </div>
-        <div class="card">
-          <h3>รายงานสรุปการสั่งซื้อรายวัน</h3>
-          <table>
-            <tr><th>เลขที่อ้างอิง</th><th>วันที่</th><th>ตัวแทนจำหน่าย</th><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th>จำนวน</th><th>ต้นทุน/หน่วย</th><th>สถานะ</th></tr>
-            ${purchaseRows}
-          </table>
+        <div id="reportDisplay">
+          <div class="card" style="text-align:center; padding:50px; color:var(--muted);">
+             <div style="font-size:40px; margin-bottom:15px;">📊</div>
+             <div>กรุณาเลือกประเภทรายงานด้านบนเพื่อดูข้อมูล</div>
+          </div>
         </div>`;
     }
+
+    window.updateReportView = function() {
+      const type = document.getElementById("reportType").value;
+      const display = document.getElementById("reportDisplay");
+      const dateRange = document.getElementById("dateRangeContainer");
+      
+      if (type === "purchases") {
+        dateRange.style.display = "flex";
+      } else {
+        dateRange.style.display = "none";
+      }
+
+      if (!type) {
+        display.innerHTML = `
+          <div class="card" style="text-align:center; padding:50px; color:var(--muted);">
+             <div style="font-size:40px; margin-bottom:15px;">📊</div>
+             <div>กรุณาเลือกประเภทรายงานด้านบนเพื่อดูข้อมูล</div>
+          </div>`;
+        return;
+      }
+
+      let content = "";
+      if (type === "inventory") {
+        const rows = db.inventory.map(i => `<tr><td>${i.code}</td><td>${i.name}</td><td>${i.category}</td><td>${i.stock}</td><td>${i.reorder}</td><td>${i.stock <= i.reorder ? '<span style="color:var(--danger)">ควรสั่งซื้อ</span>' : "ปกติ"}</td></tr>`).join("");
+        content = `
+          <div class="card">
+            <h3>รายงานสรุปสินค้าคงคลัง</h3>
+            <table style="width:100%;">
+              <thead><tr><th>รหัส</th><th>ชื่อสินค้า</th><th>หมวดหมู่</th><th>คงคลัง</th><th>จุดสั่งซื้อขั้นต่ำ</th><th>สถานะ</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+      } else if (type === "issues") {
+        const rows = db.issues.map(i => `<tr><td>${i.date}</td><td>${i.issueNo || "-"}</td><td>${i.item}</td><td>${i.qty}</td><td>${i.reason}</td></tr>`).join("");
+        content = `
+          <div class="card">
+            <h3>รายงานประวัติเบิกสินค้า</h3>
+            <table style="width:100%;">
+              <thead><tr><th>วันที่</th><th>เลขที่เอกสาร</th><th>สินค้า</th><th>จำนวน</th><th>เหตุผล</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+      } else if (type === "purchases") {
+        const start = document.getElementById("reportStartDate").value;
+        const end = document.getElementById("reportEndDate").value;
+        
+        let filtered = db.purchases;
+        if (start && end) {
+          filtered = db.purchases.filter(p => p.date >= start && p.date <= end);
+        }
+
+        const rows = filtered.flatMap(p =>
+          (p.items && p.items.length > 0)
+            ? p.items.map(itm => `<tr><td>${p.ref}</td><td>${p.date}</td><td>${p.vendor || "-"}</td><td>${itm.code || "-"}</td><td>${itm.name || "-"}</td><td>${itm.qty}</td><td>${Number(itm.cost || 0).toLocaleString()}</td><td>${p.status || ""}</td></tr>`)
+            : [`<tr><td>${p.ref}</td><td>${p.date}</td><td>${p.vendor || "-"}</td><td>-</td><td>-</td><td>-</td><td>-</td><td>${p.status || ""}</td></tr>`]
+        ).join("");
+
+        content = `
+          <div class="card">
+            <h3>รายงานสรุปการสั่งซื้อ ${start && end ? `(ระหว่างวันที่ ${start} ถึง ${end})` : "(ทั้งหมด)"}</h3>
+            <table style="width:100%;">
+              <thead><tr><th>เลขที่อ้างอิง</th><th>วันที่</th><th>ตัวแทนจำหน่าย</th><th>รหัสสินค้า</th><th>ชื่อสินค้า</th><th>จำนวน</th><th>ต้นทุน/หน่วย</th><th>สถานะ</th></tr></thead>
+              <tbody>${rows || '<tr><td colspan="8" style="text-align:center; padding:20px;">ไม่พบข้อมูลในช่วงวันที่เลือก</td></tr>'}</tbody>
+            </table>
+          </div>`;
+      }
+      display.innerHTML = content;
+    };
 
     function escapeCSV(val) {
       if (val === null || val === undefined) return "";
@@ -1943,35 +2037,51 @@
     }
 
     async function exportReportsToExcel() {
+      const type = document.getElementById("reportType")?.value;
+      if (!type) return alert("กรุณาเลือกประเภทรายงานก่อนส่งออกข้อมูล");
+
       try {
-        let csv = "\uFEFF"; // UTF-8 BOM so Excel opens Thai chars properly
+        let csv = "\uFEFF"; // UTF-8 BOM
+        let fileName = "report";
 
-        csv += "รายงานสรุปสินค้าคงคลัง\n";
-        csv += "รหัส,ชื่อสินค้า,หมวดหมู่,คงคลัง,จุดสั่งซื้อขั้นต่ำ,สถานะ\n";
-        db.inventory.forEach(i => {
-          const status = i.stock <= i.reorder ? "ควรสั่งซื้อ" : "ปกติ";
-          csv += [i.code, i.name, i.category, i.stock, i.reorder, status].map(escapeCSV).join(",") + "\n";
-        });
-        csv += "\n\n";
-
-        csv += "รายงานประวัติเบิกสินค้า\n";
-        csv += "วันที่,เลขที่เอกสาร,สินค้า,จำนวน,เหตุผล\n";
-        db.issues.forEach(i => {
-          csv += [i.date, i.issueNo || i.orderNo, i.item, i.qty, i.reason].map(escapeCSV).join(",") + "\n";
-        });
-        csv += "\n\n";
-
-        csv += "รายงานสรุปการสั่งซื้อรายวัน\n";
-        csv += "เลขที่อ้างอิง,วันที่,ตัวแทนจำหน่าย,รหัสสินค้า,ชื่อสินค้า,จำนวน,ต้นทุน/หน่วย,สถานะ\n";
-        db.purchases.forEach(p => {
-          if (p.items && p.items.length > 0) {
-            p.items.forEach(itm => {
-              csv += [p.ref, p.date, p.vendor, itm.code, itm.name, itm.qty, itm.cost, p.status].map(escapeCSV).join(",") + "\n";
-            });
-          } else {
-            csv += [p.ref, p.date, p.vendor, "-", "-", "-", "-", p.status].map(escapeCSV).join(",") + "\n";
+        if (type === "inventory") {
+          fileName = "inventory_report";
+          csv += "รายงานสรุปสินค้าคงคลัง\n";
+          csv += "รหัส,ชื่อสินค้า,หมวดหมู่,คงคลัง,จุดสั่งซื้อขั้นต่ำ,สถานะ\n";
+          db.inventory.forEach(i => {
+            const status = i.stock <= i.reorder ? "ควรสั่งซื้อ" : "ปกติ";
+            csv += [i.code, i.name, i.category, i.stock, i.reorder, status].map(escapeCSV).join(",") + "\n";
+          });
+        } else if (type === "issues") {
+          fileName = "issue_history_report";
+          csv += "รายงานประวัติเบิกสินค้า\n";
+          csv += "วันที่,เลขที่เอกสาร,สินค้า,จำนวน,เหตุผล\n";
+          db.issues.forEach(i => {
+            csv += [i.date, i.issueNo || "-", i.item, i.qty, i.reason].map(escapeCSV).join(",") + "\n";
+          });
+        } else if (type === "purchases") {
+          const start = document.getElementById("reportStartDate").value;
+          const end = document.getElementById("reportEndDate").value;
+          fileName = `purchase_report_${start || "all"}_to_${end || "all"}`;
+          
+          let filtered = db.purchases;
+          if (start && end) {
+            filtered = db.purchases.filter(p => p.date >= start && p.date <= end);
           }
-        });
+
+          csv += "รายงานสรุปการสั่งซื้อ\n";
+          if (start && end) csv += `ระหว่างวันที่ ${start} ถึง ${end}\n`;
+          csv += "เลขที่อ้างอิง,วันที่,ตัวแทนจำหน่าย,รหัสสินค้า,ชื่อสินค้า,จำนวน,ต้นทุน/หน่วย,สถานะ\n";
+          filtered.forEach(p => {
+            if (p.items && p.items.length > 0) {
+              p.items.forEach(itm => {
+                csv += [p.ref, p.date, p.vendor, itm.code, itm.name, itm.qty, itm.cost, p.status].map(escapeCSV).join(",") + "\n";
+              });
+            } else {
+              csv += [p.ref, p.date, p.vendor, "-", "-", "-", "-", p.status].map(escapeCSV).join(",") + "\n";
+            }
+          });
+        }
 
         if (window.showSaveFilePicker) {
           try {

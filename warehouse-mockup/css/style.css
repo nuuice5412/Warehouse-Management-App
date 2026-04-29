@@ -177,6 +177,22 @@
       resize: vertical;
     }
 
+    /* Date input - make calendar icon clearly visible */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      background-color: var(--accent);
+      border-radius: 4px;
+      padding: 3px;
+      cursor: pointer;
+      opacity: 1;
+      filter: invert(0);
+      color: #fff;
+    }
+
+    [data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+      background-color: var(--accent);
+      filter: invert(0);
+    }
+
     .btn {
       border: 1px solid var(--border);
       background: var(--btn-bg);

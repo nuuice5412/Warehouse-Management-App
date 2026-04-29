@@ -20,11 +20,15 @@ Thai-first desktop prototype and backend skeleton for warehouse management.
   - Passwords hashed with SHA-256 before storage.
   - Global logout mechanism available across all screens.
 
-- **Core Data Management:**
-  - Thai-first UI labels and interface.
-  - Comprehensive modules: Users, Inventory, Vendors, Purchases (multi-item PO), Receiving, Issue, and Reports.
-  - Auto-generated issue document numbers (e.g., `ISS-YYYYMMDD-XXX`).
-  - Export data and reports to Excel (.csv format) with full UTF-8 support.
+- **Core Data Management & Workflows:**
+  - **Smart Vendor Selection:** กรองแสดงเฉพาะตัวแทนจำหน่ายที่สถานะ "ใช้งานปกติ" (Active) ป้องกันความผิดพลาดในการสั่งซื้อ
+  - **Auto-fill Contact Info:** ดึงเบอร์โทรศัพท์ตัวแทนจำหน่ายให้อัตโนมัติเมื่อเลือกชื่อบริษัท พร้อมเปิดให้แก้ไขได้ตามหน้างาน
+  - **Approval Workflow (RBAC):** 
+    - รายการเบิกสินค้าใหม่จะถูกตั้งสถานะเป็น "รออนุมัติ" (Pending) โดยอัตโนมัติ
+    - เฉพาะ **Warehouse Manager** เท่านั้นที่มีสิทธิ์ในการอนุมัติ (Approve) หรือเปลี่ยนสถานะรายการเบิก
+  - **Direct-Action Receiving:** ปรับปรุงหน้าตรวจรับสินค้าให้คลิกที่รหัส PO/ชื่อบริษัทเพื่อดูรายละเอียดได้ทันที และเพิ่มการบันทึกวันที่รับสินค้าจริง
+  - **Advanced Reporting:** ระบบเลือกดูรายงานเฉพาะส่วน พร้อมฟังก์ชันกรองข้อมูลตามช่วงวันที่ (Date Range) ก่อนการส่งออกไฟล์ Excel
+  - **Enhanced UX/UI:** ปรับปรุงปฏิทิน (Date Picker) ให้เปิดใช้งานง่ายขึ้น และไอคอนแสดงผลชัดเจนทั้งโหมดมืดและโหมดสว่าง
 
 - **UI Personalization:**
   - Dark / Light mode toggle available from the user profile menu, persisted across sessions via `localStorage`.

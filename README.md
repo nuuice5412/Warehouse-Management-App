@@ -21,14 +21,14 @@ Thai-first desktop prototype and backend skeleton for warehouse management.
   - Global logout mechanism available across all screens.
 
 - **Core Data Management & Workflows:**
-  - **Smart Vendor Selection:** กรองแสดงเฉพาะตัวแทนจำหน่ายที่สถานะ "ใช้งานปกติ" (Active) ป้องกันความผิดพลาดในการสั่งซื้อ
-  - **Auto-fill Contact Info:** ดึงเบอร์โทรศัพท์ตัวแทนจำหน่ายให้อัตโนมัติเมื่อเลือกชื่อบริษัท พร้อมเปิดให้แก้ไขได้ตามหน้างาน
+  - **Smart Vendor Selection:** Automatically filters and displays only "Active" vendors in procurement forms to prevent accidental orders from suspended suppliers.
+  - **Auto-fill Contact Info:** Instantly populates vendor phone numbers when a company is selected, while maintaining user editability for situational flexibility.
   - **Approval Workflow (RBAC):** 
-    - รายการเบิกสินค้าใหม่จะถูกตั้งสถานะเป็น "รออนุมัติ" (Pending) โดยอัตโนมัติ
-    - เฉพาะ **Warehouse Manager** เท่านั้นที่มีสิทธิ์ในการอนุมัติ (Approve) หรือเปลี่ยนสถานะรายการเบิก
-  - **Direct-Action Receiving:** ปรับปรุงหน้าตรวจรับสินค้าให้คลิกที่รหัส PO/ชื่อบริษัทเพื่อดูรายละเอียดได้ทันที และเพิ่มการบันทึกวันที่รับสินค้าจริง
-  - **Advanced Reporting:** ระบบเลือกดูรายงานเฉพาะส่วน พร้อมฟังก์ชันกรองข้อมูลตามช่วงวันที่ (Date Range) ก่อนการส่งออกไฟล์ Excel
-  - **Enhanced UX/UI:** ปรับปรุงปฏิทิน (Date Picker) ให้เปิดใช้งานง่ายขึ้น และไอคอนแสดงผลชัดเจนทั้งโหมดมืดและโหมดสว่าง
+    - New inventory issues default to "Pending Approval" (รออนุมัติ) status.
+    - Status transitions (to Approved, Shipped, etc.) are restricted to users with the **Warehouse Manager** role.
+  - **Direct-Action Receiving:** Streamlined receiving table allows clicking on PO Numbers or Vendor names for instant detail viewing, with added support for recording actual receiving dates.
+  - **Advanced Reporting:** New selective reporting dashboard with built-in Date Range filtering for Purchase Orders prior to Excel/CSV export.
+  - **Enhanced UX/UI:** Optimized calendar pickers that open on focus and refined iconography for high visibility in both Dark and Light themes.
 
 - **UI Personalization:**
   - Dark / Light mode toggle available from the user profile menu, persisted across sessions via `localStorage`.

@@ -851,6 +851,12 @@ function renderInventoryEditForm(item) {
 function saveInventoryEdit() {
   const code = document.getElementById("eCode").value.trim();
   if (!code) return alert("ต้องระบุรหัสสินค้า");
+
+  const isDuplicate = db.inventory.some(x => x.code === code && (editingInventoryCode === null || x.code !== editingInventoryCode));
+  if (isDuplicate) {
+    return alert("รหัสสินค้าซ้ำในระบบ กรุณาตรวจสอบอีกครั้ง");
+  }
+
   const item = {
     code,
     name: document.getElementById("eName").value.trim(),
@@ -988,6 +994,12 @@ function renderVendorEditForm(vendor) {
 function saveVendorEdit() {
   const code = document.getElementById("evCode").value.trim();
   if (!code) return alert("ต้องระบุรหัสตัวแทน");
+
+  const isDuplicate = db.vendors.some(x => x.code === code && (editingVendorCode === null || x.code !== editingVendorCode));
+  if (isDuplicate) {
+    return alert("รหัสตัวแทนจำหน่ายซ้ำในระบบ กรุณาตรวจสอบอีกครั้ง");
+  }
+
   const obj = {
     code,
     name: document.getElementById("evName").value.trim(),
@@ -1282,6 +1294,11 @@ window.updatePOTotal = function () {
 function savePurchaseEdit() {
   const ref = document.getElementById("epRef").value.trim();
   if (!ref) return alert("ต้องระบุเลขที่ PO");
+
+  const isDuplicate = db.purchases.some(x => x.ref === ref && (editingPurchaseRef === null || x.ref !== editingPurchaseRef));
+  if (isDuplicate) {
+    return alert("เลขที่เอกสาร PO ซ้ำในระบบ กรุณาตรวจสอบอีกครั้ง");
+  }
 
   const rows = document.querySelectorAll(".po-item-row");
   const items = [];
@@ -1891,6 +1908,13 @@ function renderIssueEditForm(issue) {
 
 async function saveIssueEdit() {
   const issueNoInput = document.getElementById("eiNo").value.trim();
+  if (issueNoInput) {
+    const isDuplicate = db.issues.some(x => x.issueNo === issueNoInput && (editingIssueNo === null || x.issueNo !== editingIssueNo));
+    if (isDuplicate) {
+      return alert("เลขที่เอกสารเบิกซ้ำในระบบ กรุณาตรวจสอบอีกครั้ง");
+    }
+  }
+
   const item = document.getElementById("eiItem").value;
   const qty = Math.max(0, Number(document.getElementById("eiQty").value || 0));
   const reason = document.getElementById("eiReason").value.trim();

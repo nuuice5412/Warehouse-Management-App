@@ -471,7 +471,7 @@ function renderDashboard() {
         <div class="kpi-grid">
           <div class="kpi-card">
             <div class="title">มูลค่าคงคลังรวม (Total Value)</div>
-            <div class="value">฿${totalInventoryValue.toLocaleString()}</div>
+            <div class="value">฿${totalInventoryValue.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <div class="change up"><span class="change-badge">อัปเดตล่าสุด</span></div>
           </div>
           <div class="kpi-card">
@@ -758,7 +758,7 @@ function renderInventory() {
             <td>${item.category}</td>
             <td>${item.stock}</td>
             <td>${item.reorder}</td>
-            <td>${item.price}</td>
+            <td>${Number(item.price || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
             <td>${statusHtml}</td>
             <td>
               <span style="cursor:pointer; margin-right:15px; font-size:18px;" onclick="editRow('inventory', ${idx})" title="แก้ไข">✏️</span>
@@ -828,7 +828,7 @@ function renderInventoryEditForm(item) {
             <div><label>หมวดหมู่สินค้า</label><input id="eCategory" value="${selected.category || ""}"></div>
             <div><label>จำนวนคงคลัง</label><input id="eStock" type="number" min="0" value="${selected.stock ?? 0}"></div>
             <div><label>จำนวนคงคลังขั้นต่ำ</label><input id="eReorder" type="number" min="0" value="${selected.reorder ?? 0}"></div>
-            <div><label>ราคาปัจจุบัน</label><input id="ePrice" type="number" min="0" value="${selected.price ?? 0}"></div>
+            <div><label>ราคาปัจจุบัน</label><input id="ePrice" type="number" step="0.01" min="0" value="${selected.price ?? 0}"></div>
             <div style="grid-column: span 2;">
               <label>สินค้าจากตัวแทนจำหน่าย</label>
               <select id="eSupplierItem" style="width:100%; background:var(--panel-2); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:8px; margin-top:5px;">
@@ -1163,7 +1163,7 @@ function renderPurchaseEditForm(purchase) {
                         </select>
                       </td>
                       <td>
-                        <input type="number" class="po-item-cost" value="${itm.cost ?? 0}" min="0" oninput="updatePOTotal()" style="width:80px; text-align:center;">
+                        <input type="number" class="po-item-cost" step="0.01" value="${itm.cost ?? 0}" min="0" oninput="updatePOTotal()" style="width:80px; text-align:center;">
                       </td>
                       <td>
                         <input type="number" class="po-item-qty" value="${itm.qty ?? 0}" min="0" oninput="updatePOTotal()" style="width:80px; text-align:center;">
@@ -1252,7 +1252,7 @@ window.addPurchaseItemRow = function () {
           </select>
         </td>
         <td>
-          <input type="number" class="po-item-cost" value="0" min="0" oninput="updatePOTotal()" style="width:80px; text-align:center;">
+          <input type="number" class="po-item-cost" step="0.01" value="0" min="0" oninput="updatePOTotal()" style="width:80px; text-align:center;">
         </td>
         <td>
           <input type="number" class="po-item-qty" value="0" min="0" oninput="updatePOTotal()" style="width:80px; text-align:center;">
@@ -1492,7 +1492,7 @@ function renderReceivingEditForm(poIdx, isReadOnly) {
             <td style="text-align:left;">${i + 1}.</td>
             <td style="text-align:left;">${itm.code || "-"}</td>
             <td style="text-align:left;">${itm.name || "-"}</td>
-            <td>${Number(pricePerUnit).toLocaleString()}</td>
+            <td>${Number(pricePerUnit).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
             <td>${orderQty}</td>
             <td>
               <input type="number" class="r-recv-qty" data-price="${pricePerUnit}" data-order-qty="${orderQty}" value="${orderQty}" min="0" 
@@ -2043,7 +2043,7 @@ window.updateReportView = function () {
 
     const rows = filtered.flatMap(p =>
       (p.items && p.items.length > 0)
-        ? p.items.map(itm => `<tr><td>${p.ref}</td><td>${p.date}</td><td>${p.vendor || "-"}</td><td>${itm.code || "-"}</td><td>${itm.name || "-"}</td><td>${itm.qty}</td><td>${Number(itm.cost || 0).toLocaleString()}</td><td>${p.status || ""}</td></tr>`)
+        ? p.items.map(itm => `<tr><td>${p.ref}</td><td>${p.date}</td><td>${p.vendor || "-"}</td><td>${itm.code || "-"}</td><td>${itm.name || "-"}</td><td>${itm.qty}</td><td>${Number(itm.cost || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td><td>${p.status || ""}</td></tr>`)
         : [`<tr><td>${p.ref}</td><td>${p.date}</td><td>${p.vendor || "-"}</td><td>-</td><td>-</td><td>-</td><td>-</td><td>${p.status || ""}</td></tr>`]
     ).join("");
 

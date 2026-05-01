@@ -972,7 +972,7 @@ function renderVendorEditForm(vendor) {
         <div class="card" style="padding: 20px;">
           <h3>${editingVendorCode ? "แก้ไขข้อมูลตัวแทนจำหน่าย" : "เพิ่มตัวแทนจำหน่ายใหม่"}</h3>
           <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div><label>รหัสตัวแทน</label><input id="evCode" value="${selected.code || ""}" ${editingVendorCode ? "readonly" : ""}></div>
+            <div><label>รหัสตัวแทน</label><input id="evCode" value="${selected.code || ""}"></div>
             <div><label>ชื่อบริษัท/ร้านค้า</label><input id="evName" value="${selected.name || ""}"></div>
             <div><label>ชื่อผู้ติดต่อ</label><input id="evContactName" value="${selected.contactName || ""}"></div>
             <div><label>เบอร์โทรศัพท์</label><input id="evPhone" value="${selected.phone || ""}"></div>
@@ -993,7 +993,26 @@ function renderVendorEditForm(vendor) {
 
 function saveVendorEdit() {
   const code = document.getElementById("evCode").value.trim();
-  if (!code) return alert("ต้องระบุรหัสตัวแทน");
+  const name = document.getElementById("evName").value.trim();
+  const contactName = document.getElementById("evContactName").value.trim();
+  const phone = document.getElementById("evPhone").value.trim();
+  const status = document.getElementById("evStatus").value;
+
+  if (!code) {
+    return alert("กรุณากรอกรหัสตัวแทน");
+  }
+  if (!name) {
+    return alert("กรุณากรอกชื่อบริษัท/ร้านค้า");
+  }
+  if (!contactName) {
+    return alert("กรุณากรอกชื่อผู้ติดต่อ");
+  }
+  if (!phone) {
+    return alert("กรุณากรอกเบอร์โทรศัพท์");
+  }
+  if (!status) {
+    return alert("กรุณาเลือกสถานะ");
+  }
 
   const isDuplicate = db.vendors.some(x => x.code === code && (editingVendorCode === null || x.code !== editingVendorCode));
   if (isDuplicate) {
@@ -1002,10 +1021,10 @@ function saveVendorEdit() {
 
   const obj = {
     code,
-    name: document.getElementById("evName").value.trim(),
-    contactName: document.getElementById("evContactName").value.trim(),
-    phone: document.getElementById("evPhone").value.trim(),
-    status: document.getElementById("evStatus").value
+    name,
+    contactName,
+    phone,
+    status
   };
   const idx = db.vendors.findIndex(x => x.code === editingVendorCode || x.code === code);
   if (idx < 0) {
@@ -1022,6 +1041,7 @@ function cancelVendorEdit() {
   editingVendorCode = null;
   renderVendors();
 }
+
 
 function filterPurchases() {
   const searchInput = document.getElementById("searchPurchase")?.value.toLowerCase() || "";
@@ -1664,7 +1684,7 @@ function renderSearch() {
             <td>${item.stock || 0}</td>
             <td>${status}</td>
             <td>${Number(item.price || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.details || item.supplierItem || "-"}</td>
+            <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.details || "-"}</td>
             <td style="text-align:center;">
               <span style="cursor:pointer; font-size:18px; color:#4f8cff;" onclick="renderSearchDetails('${item.code}')" title="ดูรายละเอียด">👁️</span>
             </td>
